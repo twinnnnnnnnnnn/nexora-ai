@@ -1,0 +1,33 @@
+# Gradle
+.gradle/
+build/
+out/
+classes/
+
+# Loom / Minecraft
+run/
+.fabric/
+remappedSrc/
+
+# IDE - IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# IDE - Eclipse
+.settings/
+.metadata/
+.classpath
+.project
+bin/
+
+# IDE - VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Java
+*.class
+hs_err_pid*
