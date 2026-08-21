@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "aicompanion",
+  "version": "${version}",
+  "name": "AI Companion",
+  "description": "Chat with a local AI directly inside Minecraft. Runs fully offline through Ollama and is aware of your in-game situation (health, position, dimension, time and biome).",
+  "authors": [
+    "Stefano"
+  ],
+  "contact": {
+    "homepage": "https://github.com/apolloclaws-oss/minecraft-ai-companion",
+    "sources": "https://github.com/apolloclaws-oss/minecraft-ai-companion",
+    "issues": "https://github.com/apolloclaws-oss/minecraft-ai-companion/issues"
+  },
+  "license": "MIT",
+  "icon": "assets/aicompanion/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.stefano.aicompanion.AiCompanionClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.5",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
