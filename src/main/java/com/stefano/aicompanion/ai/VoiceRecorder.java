@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 public class VoiceRecorder {
     private volatile boolean recording;
     private volatile TargetDataLine line;
+    private volatile Thread recorderThread;
 
     public synchronized void start(Path output, Runnable onStarted, Consumer<Throwable> onFailure) {
         if (recording) return;
@@ -44,15 +45,25 @@ public class VoiceRecorder {
             }
         }, "nexora-microphone");
         thread.setDaemon(true);
+        recorderThread = thread;
         thread.start();
     }
 
-    public synchronized void stop() {
+    public void stop() {
         recording = false;
         TargetDataLine activeLine = line;
         if (activeLine != null) {
             activeLine.stop();
             activeLine.close();
         }
+        Thread activeThread = recorderThread;
+        if (activeThread != null && activeThread != Thread.currentThread()) {
+            try {
+                activeThread.join(1500L);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        recorderThread = null;
     }
 }
