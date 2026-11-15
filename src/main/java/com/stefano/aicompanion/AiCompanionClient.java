@@ -1,11 +1,9 @@
 package com.stefano.aicompanion;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.stefano.aicompanion.ai.OllamaClient;
 import com.stefano.aicompanion.ai.PlayerContext;
 import com.stefano.aicompanion.config.ModConfig;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.command.v1.ClientCommandManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.LiteralText;
@@ -20,6 +18,7 @@ import java.util.concurrent.Executors;
 public class AiCompanionClient implements ClientModInitializer {
     public static final String MOD_ID = "nexora_ai";
     public static final Logger LOGGER = LogManager.getLogger("Nexora AI");
+    private static AiCompanionClient instance;
 
     private static final Text PREFIX = new LiteralText("[Nexora AI] ")
             .formatted(Formatting.AQUA, Formatting.BOLD);
@@ -35,43 +34,55 @@ public class AiCompanionClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        instance = this;
         config = ModConfig.load();
         LOGGER.info("Nexora AI ready (model '{}' @ {})", config.model, config.ollamaUrl);
-        registerCommands();
     }
 
-    private void registerCommands() {
-        ClientCommandManager.DISPATCHER.register(ClientCommandManager.literal("ai")
-                .then(ClientCommandManager.literal("reload").executes(context -> {
-                    config = ModConfig.load();
-                    feedback(new LiteralText("Config reloaded. Model: " + config.model)
-                            .formatted(Formatting.GREEN));
-                    return 1;
-                }))
-                .then(ClientCommandManager.literal("model")
-                        .then(ClientCommandManager.argument("name", StringArgumentType.word())
-                                .executes(context -> {
-                                    config.model = StringArgumentType.getString(context, "name");
-                                    config.save();
-                                    feedback(new LiteralText("Model set to " + config.model)
-                                            .formatted(Formatting.GREEN));
-                                    return 1;
-                                })))
-                .then(ClientCommandManager.argument("prompt", StringArgumentType.greedyString())
-                        .executes(context -> {
-                            ask(StringArgumentType.getString(context, "prompt"));
-                            return 1;
-                        }))
-                .executes(context -> {
-                    feedback(new LiteralText("Usage: /ai <question> | /ai model <name> | /ai reload")
-                            .formatted(Formatting.GRAY));
-                    return 1;
-                }));
+    /**
+     * Handles local /ai chat commands. Returning true means the message was consumed
+     * and must not be sent to the server.
+     */
+    public static boolean handleChatCommand(String message) {
+        if (instance == null || message == null) return false;
+        if (!message.equals("/ai") && !message.startsWith("/ai ")) return false;
+
+        String arguments = message.length() > 3 ? message.substring(4).trim() : "";
+        if (arguments.isEmpty()) {
+            instance.feedback(new LiteralText("Usage: /ai <question> | /ai model <name> | /ai reload")
+                    .formatted(Formatting.GRAY));
+            return true;
+        }
+
+        if (arguments.equals("reload")) {
+            instance.config = ModConfig.load();
+            instance.feedback(new LiteralText("Config reloaded. Model: " + instance.config.model)
+                    .formatted(Formatting.GREEN));
+            return true;
+        }
+
+        if (arguments.startsWith("model ")) {
+            String model = arguments.substring(6).trim();
+            if (model.isEmpty()) {
+                instance.feedback(new LiteralText("Usage: /ai model <name>").formatted(Formatting.GRAY));
+            } else {
+                instance.config.model = model;
+                instance.config.save();
+                instance.feedback(new LiteralText("Model set to " + model).formatted(Formatting.GREEN));
+            }
+            return true;
+        }
+
+        instance.ask(arguments);
+        return true;
     }
 
     private void ask(String prompt) {
         final ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if (player == null) return;
+        if (player == null) {
+            feedback(new LiteralText("You must be in a world to ask a question.").formatted(Formatting.RED));
+            return;
+        }
 
         feedback(new LiteralText("You asked: ").formatted(Formatting.GRAY)
                 .append(new LiteralText(prompt).formatted(Formatting.WHITE)));
