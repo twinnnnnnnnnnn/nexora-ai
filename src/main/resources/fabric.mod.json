@@ -4,7 +4,9 @@
   "version": "${version}",
   "name": "Nexora AI",
   "description": "A local, world-aware AI companion for Minecraft, powered by Ollama.",
-  "authors": ["Nexora"],
+  "authors": [
+    "Nexora"
+  ],
   "contact": {
     "homepage": "https://github.com/twinnnnnnnnnnn/nexora-ai",
     "sources": "https://github.com/twinnnnnnnnnnn/nexora-ai"
@@ -13,12 +15,17 @@
   "icon": "assets/aicompanion/icon.png",
   "environment": "client",
   "entrypoints": {
-    "client": ["com.stefano.aicompanion.AiCompanionClient"]
+    "client": [
+      "com.stefano.aicompanion.AiCompanionClient"
+    ]
   },
   "depends": {
     "fabricloader": ">=0.9.3",
     "minecraft": "~1.16.1",
     "java": ">=8",
     "fabric": "*"
-  }
+  },
+  "mixins": [
+    "nexora_ai.mixins.json"
+  ]
 }
