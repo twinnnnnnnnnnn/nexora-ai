@@ -26,6 +26,15 @@ public class ModConfig {
                     + "redstone or survival strategy, give accurate, actionable advice. Keep replies "
                     + "under a few sentences unless more detail is clearly needed. Do not use markdown.";
 
+    // Voice is opt-in. Install local Whisper and Piper, then set their paths below.
+    public boolean voiceEnabled = false;
+    public boolean speakReplies = true;
+    public String whisperExecutable = "voice/whisper-cli.exe";
+    public String whisperModel = "voice/ggml-base.bin";
+    public String whisperLanguage = "auto";
+    public String piperExecutable = "voice/piper.exe";
+    public String piperModel = "voice/en_US-lessac-medium.onnx";
+
     public static ModConfig load() {
         try {
             if (Files.notExists(CONFIG_PATH)) {
