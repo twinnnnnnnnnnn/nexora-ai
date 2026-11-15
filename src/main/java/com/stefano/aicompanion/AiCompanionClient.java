@@ -11,15 +11,15 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class AiCompanionClient implements ClientModInitializer {
     public static final String MOD_ID = "nexora_ai";
-    public static final Logger LOGGER = LoggerFactory.getLogger("Nexora AI");
+    public static final Logger LOGGER = LogManager.getLogger("Nexora AI");
 
     private static final Text PREFIX = new LiteralText("[Nexora AI] ")
             .formatted(Formatting.AQUA, Formatting.BOLD);
