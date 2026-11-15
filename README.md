@@ -1,106 +1,71 @@
-# AI Companion
+# Nexora AI
 
-A [Fabric](https://fabricmc.net/) mod that puts a **local AI assistant inside Minecraft**. Type `/ai <question>` in chat and a language model running on your own machine answers back, aware of what is happening in your world.
+A client-side Fabric mod that adds a local AI companion to Minecraft 1.16.1. Ask questions with `/ai <question>`; the assistant can include your current health, hunger, position, dimension, biome and time of day.
 
-No cloud, no API keys, no telemetry. Everything runs locally through [Ollama](https://ollama.com).
+Nexora AI connects to [Ollama](https://ollama.com) on your own machine. It does not require a cloud API key.
 
-![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-62B47A)
-![Loader](https://img.shields.io/badge/Fabric-0.16.5+-DBD0B4)
-![Java](https://img.shields.io/badge/Java-21-orange)
-![License](https://img.shields.io/badge/License-MIT-blue)
+## Target versions
 
----
+- Minecraft: **1.16.1**
+- Mod loader: **Fabric**
+- Java: **8**
+- Fabric API: **0.18.0+build.387-1.16.1**
+- AI backend: **Ollama**
 
 ## Features
 
-- **`/ai <question>`** &mdash; ask anything and get an answer in chat.
-- **World-aware answers** &mdash; the model is told your health, hunger, position, dimension, biome and the time of day, so it can say things like *"it's night, light up your base before mobs spawn."*
-- **Fully local & private** &mdash; talks to Ollama on `localhost`; nothing leaves your machine.
-- **Non-blocking** &mdash; requests run on a background thread, so the game never freezes while the model thinks.
-- **Configurable** &mdash; swap models, tweak the system prompt and temperature from a simple JSON file, or hot-swap the model in-game with `/ai model <name>`.
-- **Friendly errors** &mdash; clear in-chat messages when Ollama is offline or a model isn't pulled yet.
+- `/ai <question>` — ask the local model a question in chat.
+- `/ai model <name>` — change the Ollama model.
+- `/ai reload` — reload the configuration.
+- World-aware prompts with player health, hunger, coordinates, dimension, biome and time.
+- Background requests so the game does not wait for the model to answer.
+- Configurable Ollama URL, model, temperature, timeout and system prompt.
 
-## Demo
+## Setup
 
-```
-> /ai what should I do before it gets dark?
-[AI] You asked: what should I do before it gets dark?
-[AI] thinking...
-[AI] You're in a plains biome at night already. Place torches around
-     your base, block up any open doorways, and keep a sword handy.
-```
+1. Install Minecraft 1.16.1 with Fabric Loader.
+2. Install the matching Fabric API.
+3. Install [Ollama](https://ollama.com) and start it.
+4. Download a model, for example:
 
-## Requirements
-
-| | |
-|---|---|
-| Minecraft | 1.21.1 |
-| Fabric Loader | 0.16.5+ |
-| Fabric API | required |
-| Java | 21+ |
-| [Ollama](https://ollama.com) | running locally |
-
-## Installation
-
-1. Install [Fabric Loader](https://fabricmc.net/use/installer/) for Minecraft 1.21.1.
-2. Download [Fabric API](https://modrinth.com/mod/fabric-api) and drop it in your `mods` folder.
-3. Download the AI Companion `.jar` from the [releases page](https://github.com/apolloclaws-oss/minecraft-ai-companion/releases) (or build it yourself, see below) and put it in `mods` too.
-4. Install and start Ollama, then pull a model:
-   ```bash
+   ```sh
    ollama pull llama3.2
    ```
-5. Launch Minecraft with the Fabric profile and type `/ai hello` in any world.
 
-## Usage
+5. Put the Nexora AI JAR in the Minecraft `mods` folder and launch the Fabric profile.
+6. In a world, run `/ai hello`.
 
-| Command | Description |
-|---|---|
-| `/ai <question>` | Ask the AI a question. |
-| `/ai model <name>` | Switch the active model (e.g. `mistral`, `qwen2.5`). |
-| `/ai reload` | Reload the config file from disk. |
+Ollama normally listens at `http://localhost:11434`.
 
 ## Configuration
 
-On first launch the mod writes `config/aicompanion.json`:
+On first launch Nexora AI creates `config/nexora-ai.json`. You can change:
 
-```json
-{
-  "ollamaUrl": "http://localhost:11434",
-  "model": "llama3.2",
-  "includePlayerContext": true,
-  "temperature": 0.7,
-  "timeoutSeconds": 90,
-  "systemPrompt": "You are a helpful in-game companion ..."
-}
-```
+- `ollamaUrl` — Ollama server URL.
+- `model` — model tag installed in Ollama.
+- `includePlayerContext` — attach live player/world information to each prompt.
+- `temperature` — response creativity.
+- `timeoutSeconds` — maximum wait for a response.
+- `systemPrompt` — assistant instructions and personality.
 
-- **ollamaUrl** &mdash; where your Ollama server lives.
-- **model** &mdash; any model you've pulled with `ollama pull`.
-- **includePlayerContext** &mdash; set to `false` for pure Q&A without world state.
-- **systemPrompt** &mdash; rewrite this to change the assistant's personality.
+Edit the file and run `/ai reload` to apply changes.
 
-Edit the file and run `/ai reload` to apply changes without restarting.
+## Build
 
-## Building from source
+Use JDK 8 and run:
 
-```bash
-git clone https://github.com/apolloclaws-oss/minecraft-ai-companion.git
-cd minecraft-ai-companion
+```sh
 ./gradlew build
 ```
 
-The compiled mod lands in `build/libs/`. Use `./gradlew runClient` to launch a dev instance.
+On Windows:
 
-## How it works
-
-```
-/ai command  ->  background worker thread  ->  HTTP POST /api/generate  ->  Ollama
-     ^                                                                        |
-     |------------------------  reply printed to chat  <----------------------|
+```bat
+gradlew.bat build
 ```
 
-The command is registered client-side through Fabric's `ClientCommandManager`. Player context is collected on the main thread, the network call happens on a dedicated worker so the render loop never blocks, and the reply is posted back to chat via `client.execute(...)`.
+The remapped mod JAR is generated in `build/libs/`.
 
-## License
+## Credits and license
 
-Released under the [MIT License](LICENSE).
+Based on the MIT-licensed [AI Companion](https://github.com/apolloclaws-oss/minecraft-ai-companion) project by Stefano, backported for Minecraft 1.16.1 and maintained as Nexora AI.
