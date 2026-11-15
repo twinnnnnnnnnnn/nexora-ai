@@ -14,7 +14,7 @@ import net.minecraft.client.options.KeyBinding;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.InputUtil;
+import net.minecraft.client.util.InputUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
