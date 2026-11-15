@@ -53,7 +53,7 @@ public class AiCompanionClient implements ClientModInitializer {
                 "key.nexora_ai.push_to_talk",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_V,
-                "category.nexora_ai"
+                "key.category.nexora_ai"
         ));
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             boolean down = voiceKey.isPressed();
