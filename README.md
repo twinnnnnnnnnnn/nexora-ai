@@ -1,106 +1,81 @@
-# AI Companion
+# Nexora AI
 
-A [Fabric](https://fabricmc.net/) mod that puts a **local AI assistant inside Minecraft**. Type `/ai <question>` in chat and a language model running on your own machine answers back, aware of what is happening in your world.
+A client-side Fabric mod for Minecraft 1.16.1 with a local, world-aware AI companion. Ask questions with `/ai <question>` or talk to it with push-to-talk voice input. The assistant can include your current health, hunger, position, dimension, biome and time of day.
 
-No cloud, no API keys, no telemetry. Everything runs locally through [Ollama](https://ollama.com).
+Nexora AI connects to [Ollama](https://ollama.com) on your own machine. Voice recognition and spoken replies use local Whisper and Piper programs; no cloud speech API is used.
 
-![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-62B47A)
-![Loader](https://img.shields.io/badge/Fabric-0.16.5+-DBD0B4)
-![Java](https://img.shields.io/badge/Java-21-orange)
-![License](https://img.shields.io/badge/License-MIT-blue)
+## Target versions
 
----
+- Minecraft: **1.16.1**
+- Mod loader: **Fabric**
+- Java: **8**
+- Fabric API: **0.18.0+build.387-1.16.1**
+- AI backend: **Ollama**
 
 ## Features
 
-- **`/ai <question>`** &mdash; ask anything and get an answer in chat.
-- **World-aware answers** &mdash; the model is told your health, hunger, position, dimension, biome and the time of day, so it can say things like *"it's night, light up your base before mobs spawn."*
-- **Fully local & private** &mdash; talks to Ollama on `localhost`; nothing leaves your machine.
-- **Non-blocking** &mdash; requests run on a background thread, so the game never freezes while the model thinks.
-- **Configurable** &mdash; swap models, tweak the system prompt and temperature from a simple JSON file, or hot-swap the model in-game with `/ai model <name>`.
-- **Friendly errors** &mdash; clear in-chat messages when Ollama is offline or a model isn't pulled yet.
+- `/ai <question>` — ask the local model a question in chat.
+- Hold **V** to record a voice question; release **V** to send it.
+- Local speech-to-text with whisper.cpp.
+- Optional spoken AI replies with Piper.
+- `/ai model <name>` — change the Ollama model.
+- `/ai reload` — reload the configuration.
+- World-aware prompts with player health, hunger, coordinates, dimension, biome and time.
+- Background requests so the game does not wait for the model to answer.
 
-## Demo
+## Setup
 
-```
-> /ai what should I do before it gets dark?
-[AI] You asked: what should I do before it gets dark?
-[AI] thinking...
-[AI] You're in a plains biome at night already. Place torches around
-     your base, block up any open doorways, and keep a sword handy.
-```
+1. Install Minecraft 1.16.1 with Fabric Loader and the matching Fabric API.
+2. Install [Ollama](https://ollama.com), start it, and download a model:
 
-## Requirements
-
-| | |
-|---|---|
-| Minecraft | 1.21.1 |
-| Fabric Loader | 0.16.5+ |
-| Fabric API | required |
-| Java | 21+ |
-| [Ollama](https://ollama.com) | running locally |
-
-## Installation
-
-1. Install [Fabric Loader](https://fabricmc.net/use/installer/) for Minecraft 1.21.1.
-2. Download [Fabric API](https://modrinth.com/mod/fabric-api) and drop it in your `mods` folder.
-3. Download the AI Companion `.jar` from the [releases page](https://github.com/apolloclaws-oss/minecraft-ai-companion/releases) (or build it yourself, see below) and put it in `mods` too.
-4. Install and start Ollama, then pull a model:
-   ```bash
+   ```sh
    ollama pull llama3.2
    ```
-5. Launch Minecraft with the Fabric profile and type `/ai hello` in any world.
 
-## Usage
+3. Install [whisper.cpp](https://github.com/ggml-org/whisper.cpp) for Windows. Put `whisper-cli.exe` in the game's `voice` folder and download a Whisper model such as `ggml-base.bin` into the same folder.
+4. Install [Piper](https://github.com/rhasspy/piper) for Windows. Put `piper.exe` in the game's `voice` folder and put a Piper voice model (the `.onnx` file and its matching `.onnx.json`) there too.
+5. Launch Minecraft once with Nexora AI installed. Open `config/nexora-ai.json` in the game directory.
+6. Set `voiceEnabled` to `true`. The default paths expect these files:
 
-| Command | Description |
-|---|---|
-| `/ai <question>` | Ask the AI a question. |
-| `/ai model <name>` | Switch the active model (e.g. `mistral`, `qwen2.5`). |
-| `/ai reload` | Reload the config file from disk. |
+   - `voice/whisper-cli.exe`
+   - `voice/ggml-base.bin`
+   - `voice/piper.exe`
+   - `voice/en_US-lessac-medium.onnx`
+
+   Change the paths in the config if your files are somewhere else. Set `speakReplies` to `false` if you only want microphone input.
+7. Restart Minecraft or run `/ai reload`. Hold **V** while speaking, then release it to send your question.
+
+Whisper's language setting is `whisperLanguage` in the config (for example `auto`, `en`, or `ja`). The microphone is only accessed while the push-to-talk key is held and voice is enabled.
 
 ## Configuration
 
-On first launch the mod writes `config/aicompanion.json`:
+Nexora AI creates `config/nexora-ai.json` on first launch. It includes:
 
-```json
-{
-  "ollamaUrl": "http://localhost:11434",
-  "model": "llama3.2",
-  "includePlayerContext": true,
-  "temperature": 0.7,
-  "timeoutSeconds": 90,
-  "systemPrompt": "You are a helpful in-game companion ..."
-}
-```
+- `ollamaUrl`, `model`, `temperature`, `timeoutSeconds`, `systemPrompt` — Ollama settings.
+- `includePlayerContext` — attach live player/world information to each prompt.
+- `voiceEnabled` — enable push-to-talk microphone input (off by default).
+- `speakReplies` — read AI replies aloud.
+- `whisperExecutable`, `whisperModel`, `whisperLanguage` — local speech recognition settings.
+- `piperExecutable`, `piperModel` — local text-to-speech settings.
 
-- **ollamaUrl** &mdash; where your Ollama server lives.
-- **model** &mdash; any model you've pulled with `ollama pull`.
-- **includePlayerContext** &mdash; set to `false` for pure Q&A without world state.
-- **systemPrompt** &mdash; rewrite this to change the assistant's personality.
+Relative executable and model paths are resolved from the Minecraft game directory. Edit the file and run `/ai reload` to apply changes.
 
-Edit the file and run `/ai reload` to apply changes without restarting.
+## Build
 
-## Building from source
+Use JDK 21 to run the Gradle wrapper (the mod itself targets Java 8 bytecode):
 
-```bash
-git clone https://github.com/apolloclaws-oss/minecraft-ai-companion.git
-cd minecraft-ai-companion
+```sh
 ./gradlew build
 ```
 
-The compiled mod lands in `build/libs/`. Use `./gradlew runClient` to launch a dev instance.
+On Windows:
 
-## How it works
-
-```
-/ai command  ->  background worker thread  ->  HTTP POST /api/generate  ->  Ollama
-     ^                                                                        |
-     |------------------------  reply printed to chat  <----------------------|
+```bat
+gradlew.bat build
 ```
 
-The command is registered client-side through Fabric's `ClientCommandManager`. Player context is collected on the main thread, the network call happens on a dedicated worker so the render loop never blocks, and the reply is posted back to chat via `client.execute(...)`.
+The remapped mod JAR is generated in `build/libs/`.
 
-## License
+## Credits and license
 
-Released under the [MIT License](LICENSE).
+Based on the MIT-licensed [AI Companion](https://github.com/apolloclaws-oss/minecraft-ai-companion) project by Stefano, backported for Minecraft 1.16.1 and maintained as Nexora AI.
